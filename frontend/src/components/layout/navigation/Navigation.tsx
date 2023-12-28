@@ -90,12 +90,12 @@ export const Navigation = (props: Props) => {
       {phoneLink}
 
       <Link
-        href="/canary"
+        href="/chirp"
         className={`${styles.link} ${styles["faq-link"]}
         ${styles["hidden-mobile"]}
-        ${router.pathname === "/canary" ? styles["is-active"] : ""}`}
+        ${router.pathname === "/chirp" ? styles["is-active"] : ""}`}
       >
-        Canary Tokens
+        Chirp
       </Link>
       <Link
         href="/faq"
