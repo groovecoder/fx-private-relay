@@ -190,6 +190,8 @@ RECRUITMENT_EMAIL_BANNER_TEXT = config("RECRUITMENT_EMAIL_BANNER_TEXT", None)
 RECRUITMENT_EMAIL_BANNER_LINK = config("RECRUITMENT_EMAIL_BANNER_LINK", None)
 
 PHONES_ENABLED = config("PHONES_ENABLED", False, cast=bool)
+CHIRPS_ENABLED = config("CHIRPS_ENABLED", False, cast=bool)
+
 PHONES_NO_CLIENT_CALLS_IN_TEST = False  # Override in tests that do not test clients
 TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID", None)
 TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", None)
@@ -299,6 +301,11 @@ if AWS_SES_CONFIGSET and AWS_SNS_TOPIC:
 if PHONES_ENABLED:
     INSTALLED_APPS += [
         "phones.apps.PhonesConfig",
+    ]
+
+if CHIRPS_ENABLED:
+    INSTALLED_APPS += [
+        "chirps.apps.ChirpsConfig",
     ]
 
 

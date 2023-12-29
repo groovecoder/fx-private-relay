@@ -23,6 +23,7 @@ from google_measurement_protocol import event, report
 from oauthlib.oauth2.rfc6749.errors import CustomOAuth2Error
 import jwt
 import sentry_sdk
+from chirps.models import Chirp
 
 # from silk.profiling.profiler import silk_profile
 
@@ -33,6 +34,7 @@ from emails.models import (
     valid_available_subdomain,
 )
 from emails.utils import incr_if_enabled
+from phones.models import RealPhone, twilio_client
 from privaterelay.fxa_utils import _get_oauth2_session, NoSocialToken
 
 from .apps import PrivateRelayConfig

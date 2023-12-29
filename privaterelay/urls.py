@@ -63,3 +63,8 @@ if settings.AWS_SES_CONFIGSET and settings.AWS_SNS_TOPIC:
     urlpatterns += [
         path("emails/", include("emails.urls")),
     ]
+
+if settings.CHIRPS_ENABLED:
+    urlpatterns += [
+        path("chirps/", include("chirps.urls")),
+    ]

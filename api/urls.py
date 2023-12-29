@@ -173,6 +173,13 @@ if settings.PHONES_ENABLED and settings.IQ_ENABLED:
     ]
 
 
+if settings.CHIRPS_ENABLED:
+    from .views.chirps import ChirpViewSet, ChirpEventViewSet
+
+    api_router.register(r"chirp", ChirpViewSet, "chirp")
+    api_router.register(r"chirpevent", ChirpEventViewSet, "chirpevent")
+
+
 urlpatterns += [
     path("v1/", include(api_router.urls)),
 ]
