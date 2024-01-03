@@ -3,12 +3,41 @@ import type { NextPage } from "next";
 import { Button } from "../components/Button";
 import { Layout } from "../components/layout/Layout";
 import { useRuntimeData } from "../hooks/api/runtimeData";
-import { useProfiles } from "../hooks/api/profile";
 import styles from "./accounts/settings.module.scss";
+import { apiFetch } from "../hooks/api/api";
+
 
 const Chirp: NextPage = () => {
   const runtimeData = useRuntimeData();
-  const profileData = useProfiles();
+  const chirpOptions = [
+    {"value": "Bank account", "level": "🚨 Critical", "description": "Insert a fake bank account recovery email. This will alert if someone is already in your email, trying to get into your bank account."},
+    {"value": "Home address", "level": "🟠 Severe", "description": "Insert a fake home address verification email. This will alert if someone is already in your email, trying to get your home address."},
+    {"value": "Social media profile", "level": "🟡 Moderate", "description": "Insert a fake social media account recovery email. This will alert if someone is already in your email, trying to get into your social media account."},
+  ];
+  const changeChirpType = (e: any) => {
+    for (const chirpOption of chirpOptions) {
+      if (chirpOption.value === e.target.value) {
+        const chirpLevelEl = document.getElementById("chirp-level")
+        if (chirpLevelEl) {
+          chirpLevelEl.innerText = chirpOption.level;
+        }
+        const chirpDescEl = document.getElementById("chirp-description")
+        if (chirpDescEl) {
+          chirpDescEl.innerText = chirpOption.description;
+        }
+      }
+    }
+  };
+  const submitChirp = (e: any) => {
+    apiFetch("/chirp", {
+      method: "POST",
+      body: JSON.stringify({
+        user: 4,
+        token: "e3hmesbphv67sx4ar6jxqnsbi",
+        level: "red",
+      }),
+    });
+  };
 
   return (
     <>
@@ -20,21 +49,31 @@ const Chirp: NextPage = () => {
           If they do, we will alert you via SMS.
         </p>
         <div className={styles["settings-form-wrapper"]}>
-          <form className={styles["settings-form"]}>
+          <form className={styles["settings-form"]} action="http://127.0.0.1:8000/api/v1/chirp/" method="POST" onSubmit={submitChirp}>
             <div className={styles.field}>
               <h2 className={styles["field-heading"]}>
-                <label htmlFor="subject">Subject</label>
+                <label htmlFor="subject">Type</label>
               </h2>
               <div>
-                <input id="subject" size={100}></input>
+                <div>
+                    <select onChange={changeChirpType}>
+                      <option>Bank account</option>
+                      <option>Home address</option>
+                      <option>Social media profile</option>
+                    </select>
+                </div>
+                <div>
+                    Level: <span id="chirp-level">🚨 Critical</span><br/>
+                    Description: <span id="chirp-description">Insert a fake bank account recovery email. This will alert if someone is already in your email, trying to get into your bank account.</span>
+                </div>
               </div>
             </div>
             <div className={styles.field}>
               <h2 className={styles["field-heading"]}>
-                <label htmlFor="Body">Body</label>
+                <label htmlFor="Label">Label</label>
               </h2>
               <div>
-                <textarea id="body" rows={10} cols={100}></textarea>
+                <input id="label" type="text" size={100}></input>
               </div>
             </div>
             <div className={styles.controls}>
