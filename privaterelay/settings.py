@@ -944,3 +944,5 @@ ALLOWLIST_INPUT_URL = config("ALLOWLIST_INPUT_URL", "", str)
 
 # Patching for django-types
 django_stubs_ext.monkeypatch()
+
+# test edit
