@@ -4,6 +4,7 @@ import {
   GoogleAnalyticsWorkaround,
   sendGAEvent,
 } from "./GoogleAnalyticsWorkaround";
+import { mockGoogleAnalytics } from "../../__mocks__/testHelpers/index";
 
 // Mock Next.js Script component
 jest.mock("next/script", () => {
@@ -253,11 +254,7 @@ describe("sendGAEvent", () => {
 
   it("calls window.gtag when dataLayer exists", () => {
     process.env.NODE_ENV = "production";
-    const mockGtag = jest.fn();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).gtag = mockGtag;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).dataLayer = [];
+    const { mockGtag, cleanup } = mockGoogleAnalytics();
 
     render(<GoogleAnalyticsWorkaround gaId="G-TEST123" />);
 
@@ -268,19 +265,12 @@ describe("sendGAEvent", () => {
       currency: "USD",
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).gtag;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).dataLayer;
+    cleanup();
   });
 
   it("calls gtag with different event names and arguments", () => {
     process.env.NODE_ENV = "production";
-    const mockGtag = jest.fn();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).gtag = mockGtag;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).dataLayer = [];
+    const { mockGtag, cleanup } = mockGoogleAnalytics();
 
     render(<GoogleAnalyticsWorkaround gaId="G-TEST123" />);
 
@@ -290,19 +280,12 @@ describe("sendGAEvent", () => {
       page: "/home",
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).gtag;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).dataLayer;
+    cleanup();
   });
 
   it("handles empty event arguments", () => {
     process.env.NODE_ENV = "production";
-    const mockGtag = jest.fn();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).gtag = mockGtag;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).dataLayer = [];
+    const { mockGtag, cleanup } = mockGoogleAnalytics();
 
     render(<GoogleAnalyticsWorkaround gaId="G-TEST123" />);
 
@@ -310,9 +293,6 @@ describe("sendGAEvent", () => {
 
     expect(mockGtag).toHaveBeenCalledWith("event", "simple_event", {});
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).gtag;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).dataLayer;
+    cleanup();
   });
 });

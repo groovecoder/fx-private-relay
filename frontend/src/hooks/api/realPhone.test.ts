@@ -8,6 +8,10 @@ import {
   VerifiedPhone,
   UnverifiedPhone,
 } from "./realPhone";
+import {
+  setupMockUseApiV1,
+  setupApiTestMocks,
+} from "../../../__mocks__/testHelpers/index";
 
 jest.mock("./api", () => {
   const actual = jest.requireActual("./api");
@@ -19,14 +23,10 @@ jest.mock("./api", () => {
 });
 
 describe("useRealPhonesData", () => {
-  const mockMutate = jest.fn();
-  const mockApiFetch = jest.fn();
+  const { mockMutate, mockApiFetch, beforeEachSetup } = setupApiTestMocks();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockMutate.mockClear();
-    mockApiFetch.mockClear();
-
+    beforeEachSetup();
     const api = jest.requireMock("./api");
     api.apiFetch = mockApiFetch;
   });
@@ -45,13 +45,7 @@ describe("useRealPhonesData", () => {
       },
     ];
 
-    useApiV1.mockReturnValue({
-      data: mockData,
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { data: mockData, mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -64,11 +58,9 @@ describe("useRealPhonesData", () => {
     const useApiV1 = jest.requireMock("./api").useApiV1;
     const mockError = new Error("Network error");
 
-    useApiV1.mockReturnValue({
+    setupMockUseApiV1(useApiV1, {
       data: undefined,
       error: mockError,
-      isLoading: false,
-      isValidating: false,
       mutate: mockMutate,
     });
 
@@ -82,11 +74,9 @@ describe("useRealPhonesData", () => {
   it("returns loading state while fetching", () => {
     const useApiV1 = jest.requireMock("./api").useApiV1;
 
-    useApiV1.mockReturnValue({
+    setupMockUseApiV1(useApiV1, {
       data: undefined,
-      error: undefined,
       isLoading: true,
-      isValidating: false,
       mutate: mockMutate,
     });
 
@@ -99,11 +89,9 @@ describe("useRealPhonesData", () => {
   it("passes correct route to useApiV1", () => {
     const useApiV1 = jest.requireMock("./api").useApiV1;
 
-    useApiV1.mockReturnValue({
+    setupMockUseApiV1(useApiV1, {
       data: undefined,
-      error: undefined,
       isLoading: true,
-      isValidating: false,
       mutate: mockMutate,
     });
 
@@ -112,72 +100,21 @@ describe("useRealPhonesData", () => {
     expect(useApiV1).toHaveBeenCalledWith("/realphone/");
   });
 
-  it("includes requestPhoneVerification function in response", () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
+  describe.each([
+    { functionName: "requestPhoneVerification" },
+    { functionName: "submitPhoneVerification" },
+    { functionName: "requestPhoneRemoval" },
+    { functionName: "resendWelcomeSMS" },
+  ])("Hook API methods", ({ functionName }) => {
+    it(`includes ${functionName} function in response`, () => {
+      const useApiV1 = jest.requireMock("./api").useApiV1;
+      setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
+      const { result } = renderHook(() => useRealPhonesData());
+
+      expect(result.current[functionName]).toBeDefined();
+      expect(typeof result.current[functionName]).toBe("function");
     });
-
-    const { result } = renderHook(() => useRealPhonesData());
-
-    expect(result.current.requestPhoneVerification).toBeDefined();
-    expect(typeof result.current.requestPhoneVerification).toBe("function");
-  });
-
-  it("includes submitPhoneVerification function in response", () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
-
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
-
-    const { result } = renderHook(() => useRealPhonesData());
-
-    expect(result.current.submitPhoneVerification).toBeDefined();
-    expect(typeof result.current.submitPhoneVerification).toBe("function");
-  });
-
-  it("includes requestPhoneRemoval function in response", () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
-
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
-
-    const { result } = renderHook(() => useRealPhonesData());
-
-    expect(result.current.requestPhoneRemoval).toBeDefined();
-    expect(typeof result.current.requestPhoneRemoval).toBe("function");
-  });
-
-  it("includes resendWelcomeSMS function in response", () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
-
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
-
-    const { result } = renderHook(() => useRealPhonesData());
-
-    expect(result.current.resendWelcomeSMS).toBeDefined();
-    expect(typeof result.current.resendWelcomeSMS).toBe("function");
   });
 
   it("requestPhoneVerification makes POST request with phone number", async () => {
@@ -187,13 +124,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -212,13 +143,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -235,13 +160,7 @@ describe("useRealPhonesData", () => {
     };
     mockApiFetch.mockResolvedValue(mockResponse);
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -258,13 +177,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -289,13 +202,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -315,13 +222,7 @@ describe("useRealPhonesData", () => {
     };
     mockApiFetch.mockResolvedValue(mockResponse);
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -340,13 +241,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -364,13 +259,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -387,13 +276,7 @@ describe("useRealPhonesData", () => {
     };
     mockApiFetch.mockResolvedValue(mockResponse);
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -409,13 +292,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -433,13 +310,7 @@ describe("useRealPhonesData", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 
@@ -456,13 +327,7 @@ describe("useRealPhonesData", () => {
     };
     mockApiFetch.mockResolvedValue(mockResponse);
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockMutate,
-    });
+    setupMockUseApiV1(useApiV1, { mutate: mockMutate });
 
     const { result } = renderHook(() => useRealPhonesData());
 

@@ -4,6 +4,10 @@ import { mockCookiesModule } from "../../../../__mocks__/functions/cookies";
 import { mockGetLocaleModule } from "../../../../__mocks__/functions/getLocale";
 import { mockUseL10nModule } from "../../../../__mocks__/hooks/l10n";
 import { getMockProfileData } from "../../../../__mocks__/hooks/api/profile";
+import {
+  mockFirstSeenOnce,
+  mockCookieDismissal,
+} from "../../../../__mocks__/testHelpers";
 
 import { CsatSurvey } from "./CsatSurvey";
 
@@ -14,10 +18,7 @@ jest.mock("../../../hooks/l10n.ts", () => mockUseL10nModule);
 
 describe("The CSAT survey", () => {
   it("does not display the survey if the user has joined within the last week", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(new Date(Date.now()));
+    mockFirstSeenOnce(0);
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -34,10 +35,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a new free user", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(new Date(0));
+    mockFirstSeenOnce(7);
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -54,19 +52,8 @@ describe("The CSAT survey", () => {
   });
 
   it("does not display the survey to a new free user that has dismissed or completed it before", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    );
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-7days") ? Date.now() : undefined,
-    );
+    mockFirstSeenOnce(7);
+    mockCookieDismissal("free-7days");
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -83,12 +70,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a free user for more than a month", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    );
+    mockFirstSeenOnce(30);
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -105,19 +87,8 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a free user for more than a month that has dismissed or completed the 1-week survey before", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    );
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-7days") ? Date.now() : undefined,
-    );
+    mockFirstSeenOnce(30);
+    mockCookieDismissal("free-7days");
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -134,19 +105,8 @@ describe("The CSAT survey", () => {
   });
 
   it("does not display the survey to a free user for more than a month that has dismissed or completed it before", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    );
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-30days") ? Date.now() : undefined,
-    );
+    mockFirstSeenOnce(30);
+    mockCookieDismissal("free-30days");
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -163,12 +123,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a free user for more than three months", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
-    );
+    mockFirstSeenOnce(90);
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -185,19 +140,8 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a free user for more than three months that has dismissed or completed the 1-month survey before", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
-    );
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-30days") ? Date.now() : undefined,
-    );
+    mockFirstSeenOnce(90);
+    mockCookieDismissal("free-30days");
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -214,19 +158,8 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a free user for more than three months that has dismissed or completed the 1-week survey before", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
-    );
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-7days") ? Date.now() : undefined,
-    );
+    mockFirstSeenOnce(90);
+    mockCookieDismissal("free-7days");
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -243,19 +176,8 @@ describe("The CSAT survey", () => {
   });
 
   it("does not display the survey to a free user for more than three months that has dismissed or completed it before", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000),
-    );
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-90days") ? Date.now() : undefined,
-    );
+    mockFirstSeenOnce(90);
+    mockCookieDismissal("free-90days");
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -272,21 +194,8 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a free user for more than three months that has dismissed or completed the 3-month survey more than three months ago", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(
-      new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1001),
-    );
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-90days")
-        ? Date.now() - 3 * 30 * 24 * 60 * 60 * 1001
-        : undefined,
-    );
+    mockFirstSeenOnce(180);
+    mockCookieDismissal("free-90days", false);
     const mockProfileData = getMockProfileData({ has_premium: false });
 
     render(<CsatSurvey profile={mockProfileData} />);
@@ -322,12 +231,8 @@ describe("The CSAT survey", () => {
   });
 
   it("does not display the survey if the user has purchased Premium within the last week, even if they created an account a week ago and did not dismiss or complete the survey then", () => {
-    const useFirstSeen = // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/firstSeen.ts") as any).useFirstSeen;
-    useFirstSeen.mockReturnValueOnce(new Date(0));
+    mockFirstSeenOnce(7);
     const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
     getCookie.mockReturnValue(undefined);
@@ -371,13 +276,7 @@ describe("The CSAT survey", () => {
   });
 
   it("does not display the survey to a new Premium user for a week who has completed or dismissed it before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("premium-7days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("premium-7days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -420,13 +319,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a new Premium user after a month that has dismissed or completed the 1-week survey before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("premium-7days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("premium-7days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -448,13 +341,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a new Premium user after a month that has dismissed or completed the 1-month free user survey before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-30days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("free-30days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -476,13 +363,7 @@ describe("The CSAT survey", () => {
   });
 
   it("does not display the survey to a new Premium user for a month who has completed or dismissed it before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("premium-30days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("premium-30days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -525,13 +406,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a new Premium user after three months that has dismissed or completed the 1-month survey before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("premium-30days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("premium-30days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -553,13 +428,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a new Premium user after three months that has dismissed or completed the 1-week survey before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("premium-7days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("premium-7days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -581,13 +450,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a new Premium user after three months that has dismissed or completed the 3-month free user survey before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("free-90days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("free-90days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -609,13 +472,7 @@ describe("The CSAT survey", () => {
   });
 
   it("does not display the survey to a new Premium user for three months who has completed or dismissed it before", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("premium-90days") ? Date.now() : undefined,
-    );
+    mockCookieDismissal("premium-90days");
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(
@@ -637,15 +494,7 @@ describe("The CSAT survey", () => {
   });
 
   it("displays the survey to a new Premium user after more than three months that has dismissed or completed it more than three months ago", () => {
-    const getCookie: jest.Mock =
-      // TypeScript can't follow paths in `jest.requireMock`:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../functions/cookies.ts") as any).getCookie;
-    getCookie.mockImplementation((key: string) =>
-      key.includes("premium-90days")
-        ? Date.now() - 3 * 30 * 24 * 60 * 60 * 1001
-        : undefined,
-    );
+    mockCookieDismissal("premium-90days", false);
     const mockProfileData = getMockProfileData({
       has_premium: true,
       date_subscribed: new Date(

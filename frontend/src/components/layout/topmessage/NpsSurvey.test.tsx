@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { mockUseL10nModule } from "../../../../__mocks__/hooks/l10n";
 import { getMockProfileData } from "../../../../__mocks__/hooks/api/profile";
+import { mockLocalDismissal } from "../../../../__mocks__/testHelpers";
 import { NpsSurvey } from "./NpsSurvey";
 
 jest.mock("../../../hooks/l10n.ts", () => mockUseL10nModule);
@@ -16,14 +17,7 @@ describe("<NpsSurvey>", () => {
     jest.clearAllMocks();
     global.gaEventMock.mockClear();
 
-    const useLocalDismissal =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-        .useLocalDismissal;
-    useLocalDismissal.mockReturnValue({
-      isDismissed: false,
-      dismiss: jest.fn(),
-    });
+    mockLocalDismissal(false);
 
     const useFirstSeen =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,14 +48,7 @@ describe("<NpsSurvey>", () => {
     });
 
     it("does not render when dismissed", () => {
-      const useLocalDismissal =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-          .useLocalDismissal;
-      useLocalDismissal.mockReturnValue({
-        isDismissed: true,
-        dismiss: jest.fn(),
-      });
+      mockLocalDismissal(true);
 
       const { container } = render(<NpsSurvey />);
 
@@ -286,15 +273,7 @@ describe("<NpsSurvey>", () => {
 
     it("calls dismiss when rating is submitted", async () => {
       const user = userEvent.setup();
-      const mockDismiss = jest.fn();
-      const useLocalDismissal =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-          .useLocalDismissal;
-      useLocalDismissal.mockReturnValue({
-        isDismissed: false,
-        dismiss: mockDismiss,
-      });
+      const mockDismiss = mockLocalDismissal(false);
 
       render(<NpsSurvey />);
 
@@ -308,15 +287,7 @@ describe("<NpsSurvey>", () => {
   describe("User interactions - Dismiss", () => {
     it("calls dismiss when close button is clicked", async () => {
       const user = userEvent.setup();
-      const mockDismiss = jest.fn();
-      const useLocalDismissal =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-          .useLocalDismissal;
-      useLocalDismissal.mockReturnValue({
-        isDismissed: false,
-        dismiss: mockDismiss,
-      });
+      const mockDismiss = mockLocalDismissal(false);
 
       render(<NpsSurvey />);
 

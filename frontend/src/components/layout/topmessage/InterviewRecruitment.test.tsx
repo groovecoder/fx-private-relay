@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { mockUseL10nModule } from "../../../../__mocks__/hooks/l10n";
+import { mockLocalDismissal } from "../../../../__mocks__/testHelpers";
 import { InterviewRecruitment } from "./InterviewRecruitment";
 
 jest.mock("../../../hooks/l10n.ts", () => mockUseL10nModule);
@@ -15,26 +16,12 @@ describe("<InterviewRecruitment>", () => {
     jest.clearAllMocks();
     global.gaEventMock.mockClear();
 
-    const useLocalDismissal =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-        .useLocalDismissal;
-    useLocalDismissal.mockReturnValue({
-      isDismissed: false,
-      dismiss: jest.fn(),
-    });
+    mockLocalDismissal(false);
   });
 
   describe("Visibility conditions", () => {
     it("renders when not dismissed", () => {
-      const useLocalDismissal =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-          .useLocalDismissal;
-      useLocalDismissal.mockReturnValue({
-        isDismissed: false,
-        dismiss: jest.fn(),
-      });
+      mockLocalDismissal(false);
 
       const { container } = render(<InterviewRecruitment />);
 
@@ -43,14 +30,7 @@ describe("<InterviewRecruitment>", () => {
     });
 
     it("does not render when dismissed", () => {
-      const useLocalDismissal =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-          .useLocalDismissal;
-      useLocalDismissal.mockReturnValue({
-        isDismissed: true,
-        dismiss: jest.fn(),
-      });
+      mockLocalDismissal(true);
 
       const { container } = render(<InterviewRecruitment />);
 
@@ -145,15 +125,7 @@ describe("<InterviewRecruitment>", () => {
 
     it("calls dismiss when close button is clicked", async () => {
       const user = userEvent.setup();
-      const mockDismiss = jest.fn();
-      const useLocalDismissal =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-          .useLocalDismissal;
-      useLocalDismissal.mockReturnValue({
-        isDismissed: false,
-        dismiss: mockDismiss,
-      });
+      const mockDismiss = mockLocalDismissal(false);
 
       render(<InterviewRecruitment />);
 
@@ -165,15 +137,7 @@ describe("<InterviewRecruitment>", () => {
 
     it("calls dismiss with no arguments", async () => {
       const user = userEvent.setup();
-      const mockDismiss = jest.fn();
-      const useLocalDismissal =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (jest.requireMock("../../../hooks/localDismissal.ts") as any)
-          .useLocalDismissal;
-      useLocalDismissal.mockReturnValue({
-        isDismissed: false,
-        dismiss: mockDismiss,
-      });
+      const mockDismiss = mockLocalDismissal(false);
 
       render(<InterviewRecruitment />);
 

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { testIconAccessibility } from "../../__mocks__/testHelpers/index";
 
 // Import the actual Icons module, not the mock
 const IconsModule = jest.requireActual("./Icons");
@@ -45,20 +46,7 @@ describe("Icons", () => {
     });
   });
 
-  describe("WarningFilledIcon", () => {
-    it("renders with alt text", () => {
-      render(<WarningFilledIcon alt="Warning" />);
-      const icon = screen.getByRole("img", { name: "Warning" });
-      expect(icon).toBeInTheDocument();
-    });
-
-    it("is hidden from screen readers when alt is empty", () => {
-      const { container } = render(<WarningFilledIcon alt="" />);
-      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
-      const svg = container.querySelector("svg");
-      expect(svg).toHaveAttribute("aria-hidden", "true");
-    });
-  });
+  testIconAccessibility(WarningFilledIcon, "Warning");
 
   describe("ArrowDownIcon", () => {
     it("renders with alt text", () => {
@@ -92,20 +80,7 @@ describe("Icons", () => {
     });
   });
 
-  describe("InfoFilledIcon", () => {
-    it("renders with alt text", () => {
-      render(<InfoFilledIcon alt="Information" />);
-      const icon = screen.getByRole("img", { name: "Information" });
-      expect(icon).toBeInTheDocument();
-    });
-
-    it("is hidden from screen readers when alt is empty", () => {
-      const { container } = render(<InfoFilledIcon alt="" />);
-      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
-      const svg = container.querySelector("svg");
-      expect(svg).toHaveAttribute("aria-hidden", "true");
-    });
-  });
+  testIconAccessibility(InfoFilledIcon, "Information");
 
   describe("InfoBulbIcon", () => {
     it("renders with alt text", () => {
@@ -162,20 +137,7 @@ describe("Icons", () => {
     });
   });
 
-  describe("CheckCircleIcon", () => {
-    it("renders with alt text", () => {
-      render(<CheckCircleIcon alt="Verified" />);
-      const icon = screen.getByRole("img", { name: "Verified" });
-      expect(icon).toBeInTheDocument();
-    });
-
-    it("is hidden from screen readers when alt is empty", () => {
-      const { container } = render(<CheckCircleIcon alt="" />);
-      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
-      const svg = container.querySelector("svg");
-      expect(svg).toHaveAttribute("aria-hidden", "true");
-    });
-  });
+  testIconAccessibility(CheckCircleIcon, "Verified");
 
   describe("StarIcon", () => {
     it("renders with alt text", () => {

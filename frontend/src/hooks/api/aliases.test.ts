@@ -11,6 +11,10 @@ import {
   AliasData,
 } from "./aliases";
 import { ProfileData } from "./profile";
+import {
+  setupMockUseApiV1,
+  setupApiTestMocks,
+} from "../../../__mocks__/testHelpers/index";
 
 jest.mock("./api", () => {
   const actual = jest.requireActual("./api");
@@ -21,23 +25,54 @@ jest.mock("./api", () => {
   };
 });
 
+// Helper to setup useApiV1 mock to return different responses per route
+function setupRouteBasedMock(
+  useApiV1Mock: jest.Mock,
+  randomMutate: jest.Mock,
+  customMutate: jest.Mock,
+  options: {
+    randomData?: RandomAliasData[];
+    customData?: CustomAliasData[];
+  } = {},
+) {
+  useApiV1Mock.mockImplementation((route: string) => {
+    if (route === "/relayaddresses/") {
+      return {
+        data: options.randomData ?? [],
+        error: undefined,
+        isLoading: false,
+        isValidating: false,
+        mutate: randomMutate,
+      };
+    }
+    if (route === "/domainaddresses/") {
+      return {
+        data: options.customData ?? [],
+        error: undefined,
+        isLoading: false,
+        isValidating: false,
+        mutate: customMutate,
+      };
+    }
+  });
+}
+
 describe("useAliases", () => {
-  const mockRandomMutate = jest.fn();
+  const {
+    mockMutate: mockRandomMutate,
+    mockApiFetch,
+    beforeEachSetup,
+  } = setupApiTestMocks();
   const mockCustomMutate = jest.fn();
-  const mockApiFetch = jest.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockRandomMutate.mockClear();
+    beforeEachSetup();
     mockCustomMutate.mockClear();
-    mockApiFetch.mockClear();
-
     const api = jest.requireMock("./api");
     api.apiFetch = mockApiFetch;
   });
 
   it("returns random and custom alias data when fetch succeeds", async () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
     const mockRandomData: RandomAliasData[] = [
       {
         mask_type: "random",
@@ -85,25 +120,10 @@ describe("useAliases", () => {
       },
     ];
 
-    useApiV1.mockImplementation((route: string) => {
-      if (route === "/relayaddresses/") {
-        return {
-          data: mockRandomData,
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockRandomMutate,
-        };
-      }
-      if (route === "/domainaddresses/") {
-        return {
-          data: mockCustomData,
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockCustomMutate,
-        };
-      }
+    const useApiV1 = jest.requireMock("./api").useApiV1;
+    setupRouteBasedMock(useApiV1, mockRandomMutate, mockCustomMutate, {
+      randomData: mockRandomData,
+      customData: mockCustomData,
     });
 
     const { result } = renderHook(() => useAliases());
@@ -116,14 +136,7 @@ describe("useAliases", () => {
 
   it("passes correct routes to useApiV1", () => {
     const useApiV1 = jest.requireMock("./api").useApiV1;
-
-    useApiV1.mockReturnValue({
-      data: undefined,
-      error: undefined,
-      isLoading: true,
-      isValidating: false,
-      mutate: jest.fn(),
-    });
+    setupMockUseApiV1(useApiV1, { isLoading: true, data: undefined });
 
     renderHook(() => useAliases());
 
@@ -131,71 +144,30 @@ describe("useAliases", () => {
     expect(useApiV1).toHaveBeenCalledWith("/domainaddresses/");
   });
 
-  it("includes create function in response", () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
+  describe.each([
+    { functionName: "create" },
+    { functionName: "update" },
+    { functionName: "delete" },
+  ])("Hook API methods", ({ functionName }) => {
+    it(`includes ${functionName} function in response`, () => {
+      const useApiV1 = jest.requireMock("./api").useApiV1;
+      setupMockUseApiV1(useApiV1);
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: jest.fn(),
+      const { result } = renderHook(() => useAliases());
+
+      expect(result.current[functionName]).toBeDefined();
+      expect(typeof result.current[functionName]).toBe("function");
     });
-
-    const { result } = renderHook(() => useAliases());
-
-    expect(result.current.create).toBeDefined();
-    expect(typeof result.current.create).toBe("function");
-  });
-
-  it("includes update function in response", () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
-
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: jest.fn(),
-    });
-
-    const { result } = renderHook(() => useAliases());
-
-    expect(result.current.update).toBeDefined();
-    expect(typeof result.current.update).toBe("function");
-  });
-
-  it("includes delete function in response", () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
-
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: jest.fn(),
-    });
-
-    const { result } = renderHook(() => useAliases());
-
-    expect(result.current.delete).toBeDefined();
-    expect(typeof result.current.delete).toBe("function");
   });
 
   it("create makes POST request for random alias", async () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
     mockApiFetch.mockResolvedValue({
       ok: true,
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockRandomMutate,
-    });
+    const useApiV1 = jest.requireMock("./api").useApiV1;
+    setupMockUseApiV1(useApiV1, { mutate: mockRandomMutate });
 
     const { result } = renderHook(() => useAliases());
 
@@ -208,19 +180,13 @@ describe("useAliases", () => {
   });
 
   it("create calls random mutate after creating random alias", async () => {
-    const useApiV1 = jest.requireMock("./api").useApiV1;
     mockApiFetch.mockResolvedValue({
       ok: true,
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockReturnValue({
-      data: [],
-      error: undefined,
-      isLoading: false,
-      isValidating: false,
-      mutate: mockRandomMutate,
-    });
+    const useApiV1 = jest.requireMock("./api").useApiV1;
+    setupMockUseApiV1(useApiV1, { mutate: mockRandomMutate });
 
     const { result } = renderHook(() => useAliases());
 
@@ -236,26 +202,7 @@ describe("useAliases", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockImplementation((route: string) => {
-      if (route === "/relayaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockRandomMutate,
-        };
-      }
-      if (route === "/domainaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockCustomMutate,
-        };
-      }
-    });
+    setupRouteBasedMock(useApiV1, mockRandomMutate, mockCustomMutate);
 
     const { result } = renderHook(() => useAliases());
 
@@ -282,26 +229,7 @@ describe("useAliases", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockImplementation((route: string) => {
-      if (route === "/relayaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockRandomMutate,
-        };
-      }
-      if (route === "/domainaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockCustomMutate,
-        };
-      }
-    });
+    setupRouteBasedMock(useApiV1, mockRandomMutate, mockCustomMutate);
 
     const { result } = renderHook(() => useAliases());
 
@@ -371,26 +299,7 @@ describe("useAliases", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockImplementation((route: string) => {
-      if (route === "/relayaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockRandomMutate,
-        };
-      }
-      if (route === "/domainaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockCustomMutate,
-        };
-      }
-    });
+    setupRouteBasedMock(useApiV1, mockRandomMutate, mockCustomMutate);
 
     const { result } = renderHook(() => useAliases());
 
@@ -412,26 +321,7 @@ describe("useAliases", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockImplementation((route: string) => {
-      if (route === "/relayaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockRandomMutate,
-        };
-      }
-      if (route === "/domainaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockCustomMutate,
-        };
-      }
-    });
+    setupRouteBasedMock(useApiV1, mockRandomMutate, mockCustomMutate);
 
     const { result } = renderHook(() => useAliases());
 
@@ -503,26 +393,7 @@ describe("useAliases", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockImplementation((route: string) => {
-      if (route === "/relayaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockRandomMutate,
-        };
-      }
-      if (route === "/domainaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockCustomMutate,
-        };
-      }
-    });
+    setupRouteBasedMock(useApiV1, mockRandomMutate, mockCustomMutate);
 
     const { result } = renderHook(() => useAliases());
 
@@ -545,26 +416,7 @@ describe("useAliases", () => {
       json: async () => ({ success: true }),
     });
 
-    useApiV1.mockImplementation((route: string) => {
-      if (route === "/relayaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockRandomMutate,
-        };
-      }
-      if (route === "/domainaddresses/") {
-        return {
-          data: [],
-          error: undefined,
-          isLoading: false,
-          isValidating: false,
-          mutate: mockCustomMutate,
-        };
-      }
-    });
+    setupRouteBasedMock(useApiV1, mockRandomMutate, mockCustomMutate);
 
     const { result } = renderHook(() => useAliases());
 
