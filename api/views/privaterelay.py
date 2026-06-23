@@ -35,6 +35,7 @@ from rest_framework.status import (
     HTTP_202_ACCEPTED,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.viewsets import ModelViewSet
 from sentry_sdk import capture_exception
 from waffle import flag_is_active, get_waffle_flag_model
@@ -62,18 +63,34 @@ FXA_PROFILE_URL = (
 )
 
 
+class ProfileRateThrottle(UserRateThrottle):
+    scope = "profile"
+    rate = settings.PROFILE_RATE_LIMIT
+
+
 @extend_schema(tags=["privaterelay"])
 class ProfileViewSet(ModelViewSet):
     """Relay user extended profile data."""
 
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated, IsOwner]
+    throttle_classes = [ProfileRateThrottle]
     http_method_names = ["get", "post", "head", "put", "patch"]
 
     def get_queryset(self) -> QuerySet[Profile]:
         if isinstance(self.request.user, User):
             return Profile.objects.filter(user=self.request.user)
         return Profile.objects.none()
+
+    def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        response = super().list(request, *args, **kwargs)
+        response["Cache-Control"] = "private, max-age=60"
+        return response
+
+    def retrieve(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        response = super().retrieve(request, *args, **kwargs)
+        response["Cache-Control"] = "private, max-age=60"
+        return response
 
 
 @extend_schema(tags=["privaterelay"])
