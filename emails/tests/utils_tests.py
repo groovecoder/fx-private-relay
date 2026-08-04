@@ -416,13 +416,13 @@ def test_remove_trackers_does_not_backtrack_on_dotted_url() -> None:
     # Fail fast on a regression. Without a bound, the old pattern runs for hours
     # on 20 dots instead of failing, which is useless in a test suite.
     previous = signal.signal(signal.SIGALRM, on_timeout)
-    signal.setitimer(signal.ITIMER_REAL, 10.0)
+    signal.alarm(10)
     try:
         changed_content, tracker_details = remove_trackers(
             content, "spammer@email.com", "1682472064"
         )
     finally:
-        signal.setitimer(signal.ITIMER_REAL, 0.0)
+        signal.alarm(0)
         signal.signal(signal.SIGALRM, previous)
 
     assert changed_content == content
