@@ -442,7 +442,12 @@ def set_user_group(user):
 
 
 def convert_domains_to_regex_patterns(domain_pattern):
-    return r"""(["'])(\S*://(\S*\.)*""" + re.escape(domain_pattern) + r"\S*)\1"
+    # A subdomain label must not contain a dot. `\S*` did, which let the engine
+    # split a dotted URL exponentially many ways before failing to match, at
+    # roughly 4x per added dot. One 130-byte link could pin an email worker for
+    # its whole 120s timeout. Barring the dot forces one split per dot, which
+    # matches the same URLs at a fraction of the cost. MPP-4739.
+    return r"""(["'])(\S*://([^\s"'.]*\.)*""" + re.escape(domain_pattern) + r"\S*)\1"
 
 
 def count_tracker(html_content, trackers):
